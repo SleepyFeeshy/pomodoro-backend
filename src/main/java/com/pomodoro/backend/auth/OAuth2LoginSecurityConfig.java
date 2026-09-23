@@ -15,9 +15,17 @@ public class OAuth2LoginSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((authorize) -> authorize
-                        .anyRequest().authenticated()
+//                        .requestMatchers("/", "/error", "/webjars/**").permitAll()
+//                        .anyRequest().authenticated()
+                                .anyRequest().permitAll()
                 )
-                .oauth2Login(withDefaults());
+                .oauth2Login(withDefaults())
+                .logout(l -> l
+                        .logoutSuccessUrl("/").permitAll()
+                )
+                .csrf((csrf) -> csrf
+                        .ignoringRequestMatchers("/**")
+                );;
         return http.build();
     }
 }
