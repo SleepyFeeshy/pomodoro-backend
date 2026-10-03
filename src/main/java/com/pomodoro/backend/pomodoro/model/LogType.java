@@ -1,4 +1,4 @@
-package com.pomdoro.backend.pomodoro.model;
+package com.pomodoro.backend.pomodoro.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;

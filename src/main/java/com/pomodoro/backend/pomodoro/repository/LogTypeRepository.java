@@ -1,6 +1,6 @@
-package com.pomdoro.backend.pomodoro.repository;
+package com.pomodoro.backend.pomodoro.repository;
 
-import com.pomdoro.backend.pomodoro.model.LogType;
+import com.pomodoro.backend.pomodoro.model.LogType;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.UUID;

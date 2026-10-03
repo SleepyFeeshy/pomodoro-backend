@@ -8,10 +8,10 @@
         <version>4.1.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.pomdoro</groupId>
-    <artifactId>pomodoro-backend</artifactId>
+    <groupId>com.pomodoro</groupId>
+    <artifactId>pomoodoro-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>pomodoro-backend</name>
+    <name>pomoodoro-backend</name>
     <description>pomodoro-backend</description>
     <url/>
     <licenses>

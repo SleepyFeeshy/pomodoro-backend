@@ -1,7 +1,7 @@
-package com.pomdoro.backend.pomodoro.service;
+package com.pomodoro.backend.pomodoro.service;
 
-import com.pomdoro.backend.pomodoro.model.LogType;
-import com.pomdoro.backend.pomodoro.repository.LogTypeRepository;
+import com.pomodoro.backend.pomodoro.model.LogType;
+import com.pomodoro.backend.pomodoro.repository.LogTypeRepository;
 import org.springframework.stereotype.Service;
 
 @Service

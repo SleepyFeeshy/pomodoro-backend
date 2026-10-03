@@ -1,8 +1,7 @@
-package com.pomdoro.backend.pomodoro.controller;
+package com.pomodoro.backend.pomodoro.controller;
 
-import com.pomdoro.backend.pomodoro.model.PomodoroLog;
-import com.pomdoro.backend.pomodoro.repository.PomodoroLogRepository;
-import com.pomdoro.backend.pomodoro.service.PomodoroLogService;
+import com.pomodoro.backend.pomodoro.model.PomodoroLog;
+import com.pomodoro.backend.pomodoro.service.PomodoroLogService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
