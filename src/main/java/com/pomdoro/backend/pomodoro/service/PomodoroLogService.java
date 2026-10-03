@@ -14,6 +14,6 @@ public class PomodoroLogService {
     }
 
     public Iterable<PomodoroLog> getAllLogs() {
-        return pomodoroLogRepository.findAll();
+        return pomodoroLogRepository.findAllByFinishedAt();
     }
 }
