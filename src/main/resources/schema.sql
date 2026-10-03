@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS session_type (
           constraint session_types_label_key unique (label)
 );
 
-CREATE TABLE IF NOT EXISTS pomodoro_log (
+CREATE TABLE IF NOT EXISTS sessions (
          id uuid not null,
          finished_at timestamp with time zone null,
          duration double precision null,
