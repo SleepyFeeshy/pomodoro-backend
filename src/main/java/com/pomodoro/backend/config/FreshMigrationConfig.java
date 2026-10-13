@@ -1,4 +1,4 @@
-package com.pomodoro.backend.pomodoro.config;
+package com.pomodoro.backend.config;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.flyway.autoconfigure.FlywayMigrationStrategy; // Boot 4 package; Boot 3 used ...autoconfigure.flyway
