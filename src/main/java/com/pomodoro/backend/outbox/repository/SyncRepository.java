@@ -1,4 +1,4 @@
-package com.pomodoro.backend.pomodoro.repository;
+package com.pomodoro.backend.outbox.repository;
 
 import org.springframework.stereotype.Repository;
 

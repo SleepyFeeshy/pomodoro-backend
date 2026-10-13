@@ -1,4 +1,4 @@
-package com.pomodoro.backend.pomodoro.model;
+package com.pomodoro.backend.outbox.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.JsonNode;

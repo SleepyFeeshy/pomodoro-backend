@@ -1,12 +1,8 @@
-package com.pomodoro.backend.pomodoro.service;
+package com.pomodoro.backend.outbox.service;
 
-import com.pomodoro.backend.pomodoro.model.*;
+import com.pomodoro.backend.outbox.model.OutboxRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.logging.Logger;
 
 @Service
@@ -20,4 +16,7 @@ public class SyncService {
      * entry must not reject the rest of the batch.
      */
 
+    public void push(OutboxRequest outboxRequest) {
+
+    }
 }

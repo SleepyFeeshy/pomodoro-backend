@@ -1,7 +1,7 @@
-package com.pomodoro.backend.pomodoro.controller;
+package com.pomodoro.backend.outbox.controller;
 
-import com.pomodoro.backend.pomodoro.model.OutboxRequest;
-import com.pomodoro.backend.pomodoro.service.SyncService;
+import com.pomodoro.backend.outbox.model.OutboxRequest;
+import com.pomodoro.backend.outbox.service.SyncService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
