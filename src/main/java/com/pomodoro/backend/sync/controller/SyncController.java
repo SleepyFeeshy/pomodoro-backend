@@ -1,7 +1,8 @@
-package com.pomodoro.backend.outbox.controller;
+package com.pomodoro.backend.sync.controller;
 
-import com.pomodoro.backend.outbox.model.OutboxRequest;
-import com.pomodoro.backend.outbox.service.SyncService;
+import com.pomodoro.backend.sync.model.OutboxRequest;
+import com.pomodoro.backend.sync.service.SyncService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ public class SyncController {
 
     @PostMapping("/push")
     public void syncPush(
-            @RequestBody OutboxRequest outboxRequest
+            @Valid @RequestBody OutboxRequest outboxRequest
     ) {
         syncService.push(outboxRequest);
     }

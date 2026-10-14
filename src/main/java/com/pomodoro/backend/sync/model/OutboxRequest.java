@@ -1,4 +1,4 @@
-package com.pomodoro.backend.outbox.model;
+package com.pomodoro.backend.sync.model;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
