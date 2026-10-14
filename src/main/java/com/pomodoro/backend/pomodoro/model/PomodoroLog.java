@@ -11,6 +11,7 @@ public class PomodoroLog {
     @Id
     private UUID id;
 
+    private UUID user_id;
     private OffsetDateTime finished_at;
     private double duration;
     private UUID session_type_id;
@@ -24,6 +25,14 @@ public class PomodoroLog {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(UUID user_id) {
+        this.user_id = user_id;
     }
 
     public OffsetDateTime getFinished_at() {
