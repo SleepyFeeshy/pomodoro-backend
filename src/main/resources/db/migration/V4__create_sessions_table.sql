@@ -11,3 +11,6 @@ create table sessions (
      constraint sessions_user_id_fkey foreign KEY (user_id) references users (id),
      constraint sessions_session_type_id_fkey foreign KEY (session_type_id) references session_types (id)
 );
+
+CREATE TRIGGER sessions_bump BEFORE INSERT OR UPDATE ON sessions
+    FOR EACH ROW EXECUTE FUNCTION bump_seq();
