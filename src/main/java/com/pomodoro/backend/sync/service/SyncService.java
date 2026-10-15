@@ -1,18 +1,12 @@
 package com.pomodoro.backend.sync.service;
 
-import com.pomodoro.backend.sync.model.OutboxEntry;
-import com.pomodoro.backend.sync.model.OutboxOp;
-import com.pomodoro.backend.sync.model.OutboxRequest;
-import com.pomodoro.backend.sync.model.PushResult;
+import com.pomodoro.backend.sync.model.*;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -42,17 +36,23 @@ public class SyncService {
      * entry must not reject the rest of the batch.
      */
 
-    public void push(OutboxRequest outboxRequest) {
+    public PushResponse push(OutboxRequest outboxRequest) {
+        List<PushResult> results = new ArrayList<>(outboxRequest.changes().size());
         logger.info(String.valueOf(outboxRequest));
         for (OutboxEntry outboxEntry: outboxRequest.changes()){
-            // logger.info(String.valueOf(outboxEntry));
-            // Insert mutation ID into processed_mutations
-            // Find handler by table
-
-            tx.execute(status -> applyEntry(outboxEntry));
-            // Parse payload
-            //
+            try {
+                results.add(tx.execute(status -> applyEntry(outboxEntry)));
+            } catch (Exception e) {
+                // Rolled back, including the processed_mutations row, so the client can
+                // fix the cause and the same entry can be retried.
+                String reason = e.getMessage();
+                logger.warning(
+                        "Rejected mutation " + outboxEntry.mutationId() +
+                        "(" +  outboxEntry.op().toString() + " " + outboxEntry.table() + " " + outboxEntry.id() + ")" + reason);
+                results.add(PushResult.rejected(outboxEntry.mutationId(), reason));
+            }
         };
+        return new PushResponse(results);
     }
 
     /** Runs inside the per-entry transaction. Any exception thrown here rolls it back. */
