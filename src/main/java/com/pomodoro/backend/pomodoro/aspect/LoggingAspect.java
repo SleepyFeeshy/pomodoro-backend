@@ -14,7 +14,7 @@ public class LoggingAspect {
     private final Logger logger = Logger.getLogger(LoggingAspect.class.getName());
 
     @Around("execution(* com.pomodoro.backend.pomodoro.service.*.*(..))")
-    public void log(ProceedingJoinPoint joinPoint)
+    public Object log(ProceedingJoinPoint joinPoint)
             throws Throwable {
         String methodName = joinPoint.getSignature().getName();
         Object[] arguments = joinPoint.getArgs();
@@ -25,6 +25,6 @@ public class LoggingAspect {
 
         Object returnedByMethod = joinPoint.proceed();
         logger.info("Method executed and returned " + returnedByMethod);
-//        return returnedByMethod;
+        return returnedByMethod;
     }
 }
