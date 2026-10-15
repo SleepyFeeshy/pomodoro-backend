@@ -1,6 +1,7 @@
 package com.pomodoro.backend.sync.controller;
 
 import com.pomodoro.backend.sync.model.OutboxRequest;
+import com.pomodoro.backend.sync.model.PushResponse;
 import com.pomodoro.backend.sync.service.SyncService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
