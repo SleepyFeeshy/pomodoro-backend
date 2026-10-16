@@ -19,9 +19,9 @@ public class SyncController {
     }
 
     @PostMapping("/push")
-    public void syncPush(
+    public PushResponse syncPush(
             @Valid @RequestBody OutboxRequest outboxRequest
     ) {
-        syncService.push(outboxRequest);
+        return syncService.push(outboxRequest);
     }
 }

@@ -1,6 +1,8 @@
 package com.pomodoro.backend.sync.service;
 
 import com.pomodoro.backend.sync.model.*;
+import com.pomodoro.backend.sync.repository.ProcessedMutationRepository;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -12,19 +14,24 @@ import java.util.stream.Collectors;
 
 @Service
 public class SyncService {
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(SyncService.class);
     public static Logger logger = Logger.getLogger(SyncService.class.getName());
 
     private final NamedParameterJdbcTemplate jdbc;
     private final TransactionTemplate tx;
     private final Map<String, SyncTableHandler> handlers;
 
+    private final ProcessedMutationRepository processedMutationRepository;
+
     // Notes: Spring automatically finds classes that implements SessionSyncHandler beans
     public SyncService(
             NamedParameterJdbcTemplate jdbc,
             TransactionTemplate tx,
+            ProcessedMutationRepository processedMutationRepository,
             List<SyncTableHandler> handlerList) {
         this.jdbc = jdbc;
         this.tx = tx;
+        this.processedMutationRepository = processedMutationRepository;
         this.handlers = handlerList.stream()
                 .collect(Collectors.toMap(SyncTableHandler::table, h -> h));
     }
@@ -62,11 +69,12 @@ public class SyncService {
         UUID userId = UUID.fromString("af24efdc-7387-4b9b-bd8c-bd183b393205");
 
         // 1. Idempotency: a replayed mutation is acknowledged but not applied again.
-//        if (!recordMutation(userId, entry.mutationId())) {
-//            return PushResult.duplicate(
-//                    entry.mutationId(),
-//                    handler.currentSeq(userId, rowId).orElse(null));
-//        }
+        if (recordMutation(UUID.fromString(entry.mutationId()), userId) == 0) {
+            logger.info("Duplicate");
+            return PushResult.duplicate(
+                    entry.mutationId(),
+                    handler.currentSeq(userId, rowId).orElse(null));
+        }
 
         // 2. Apply. The handler's SQL enforces both last-write-wins (updated_at is newer)
         //    and ownership (user_id matches), and returns the row's new server_seq.
@@ -84,5 +92,13 @@ public class SyncService {
                 .orElseThrow(() -> new IllegalStateException(
                         "row not found, or not owned by this user"));
         return PushResult.conflict(entry.mutationId(), serverRow);
+    }
+
+    // Process the mutation
+    private int recordMutation(UUID mutationId, UUID userId) {
+        // Query returns number of rows
+        // 1 or 0
+        return processedMutationRepository.insertProcessedMutation(mutationId, userId);
+
     }
 }
