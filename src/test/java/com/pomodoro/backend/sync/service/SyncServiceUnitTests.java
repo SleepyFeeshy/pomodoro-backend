@@ -1,6 +1,7 @@
 package com.pomodoro.backend.sync.service;
 
 import com.pomodoro.backend.sync.model.*;
+import com.pomodoro.backend.sync.repository.ProcessedMutationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,10 +38,7 @@ public class SyncServiceUnitTests {
     @Mock private NamedParameterJdbcTemplate jdbc;
     @Mock private SyncTableHandler sessionsHandler;
     @Mock private PlatformTransactionManager txManager;
-
-    private TransactionTemplate tx;
-    private Map<String, SyncTableHandler> handlers;
-
+    @Mock private ProcessedMutationRepository processedMutationRepository;
 
     private final JsonMapper mapper = JsonMapper.builder().build();
 
@@ -49,18 +47,17 @@ public class SyncServiceUnitTests {
         when(sessionsHandler.table()).thenReturn("sessions");
         TransactionTemplate tx = new TransactionTemplate(txManager);
 
-        syncService = new SyncService(jdbc, tx, List.of(sessionsHandler));
+        syncService = new SyncService(jdbc, tx, processedMutationRepository, List.of(sessionsHandler));
     }
 
     @Test
     @DisplayName("""
-            GIVEN One valid OutboxRequest containing a valid OutboxEntry upsert
+            GIVEN One valid OutboxRequest containing a duplicated OutboxEntry upsert
             WHEN syncService.push is called
             THEN the outbox entry is applied
             """)
     public void pushHappyFlow() {
-        UUID userId = UUID.randomUUID();
-        // GIVEN
+        // ARRANGE
         // Create sample outbox entry
         UUID mutation1 = UUID.randomUUID();
         UUID row1 = UUID.randomUUID();
@@ -80,24 +77,70 @@ public class SyncServiceUnitTests {
         OutboxOp.UPSERT, upsertData, null);
 
         OutboxRequest request = new OutboxRequest("device-1", List.of(upsertEntry));
-
         // Upsert then return value of server_seq as 41
+        when(processedMutationRepository.insertProcessedMutation(eq(mutation1), any(UUID.class)))
+                .thenReturn(1);
         when(sessionsHandler.upsert(any(UUID.class), eq(row1), eq(upsertData)))
                 .thenReturn(Optional.of(41L));
-        // WHEN
+        // ACT
         PushResponse response = syncService.push(request);
 
-        // THEN
+        // ASSERT
         assertThat(response.results()).hasSize(1);
         PushResult result = response.results().get(0);
         assertThat(result.mutationId()).isEqualTo(mutation1.toString());
         assertThat(result.status()).isEqualTo(PushStatus.APPLIED);
         assertThat(result.serverSeq()).isEqualTo(41L);
 
-        // THEN: the side effects
+        // ASSERT: the side effects
         verify(txManager).commit(any());                       // the entry's transaction committed
         verify(txManager, never()).rollback(any());
+        verify(processedMutationRepository)
+                .insertProcessedMutation(eq(mutation1), any(UUID.class));
         verify(sessionsHandler, never()).softDelete(any(), any(), any());
         verify(sessionsHandler, never()).findRow(any(), any());   // only used on conflicts
+    }
+
+    @Test
+    @DisplayName("""
+            GIVEN One valid OutboxRequest containing a valid OutboxEntry upsert
+            WHEN syncService.push is called
+            THEN the outbox entry is applied
+            """)
+    public void pushDuplicate() {
+        // ARRANGE
+        // Create sample outbox entry
+        UUID mutation1 = UUID.randomUUID();
+        UUID row1 = UUID.randomUUID();
+
+        // Outbox Entry json payload
+        JsonNode upsertData = mapper.readTree("""
+                {
+                  "session_type_id": "%s",
+                  "finished_at": "2026-10-14T09:00:00Z",
+                  "duration": 1500,
+                  "updated_at": "2026-10-14T09:00:00Z",
+                  "deleted_at": null
+                }
+                """.formatted(UUID.randomUUID()));
+        OutboxEntry upsertEntry = new OutboxEntry(
+                mutation1.toString(), "sessions", row1.toString(),
+                OutboxOp.UPSERT, upsertData, null);
+
+        OutboxRequest request = new OutboxRequest("device-1", List.of(upsertEntry));
+        // Already processed
+        when(processedMutationRepository.insertProcessedMutation(eq(mutation1), any(UUID.class)))
+                .thenReturn(0);
+        when(sessionsHandler.currentSeq(any(UUID.class), eq(row1)))
+                .thenReturn(Optional.of(40L));
+        // ACT
+        PushResponse response = syncService.push(request);
+
+        // ASSERT
+        assertThat(response.results()).hasSize(1);
+        PushResult result = response.results().get(0);
+        assertThat(result.serverSeq()).isEqualTo(40L);
+        assertThat(result.mutationId()).isEqualTo(mutation1.toString());
+        assertThat(result.status()).isEqualTo(PushStatus.DUPLICATE);
     }
 }
