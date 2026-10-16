@@ -7,6 +7,7 @@ create table session_types (
       updated_at timestamp with time zone null default CURRENT_TIMESTAMP,
       synced_at timestamp with time zone null,
       deleted_at timestamp with time zone null,
+      server_seq int,
       constraint session_types_pkey primary key (id),
       constraint session_types_label_key unique (label)
 );
