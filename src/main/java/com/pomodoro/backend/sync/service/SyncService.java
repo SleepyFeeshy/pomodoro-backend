@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.*;
 import java.util.logging.Logger;
@@ -16,10 +17,10 @@ import java.util.stream.Collectors;
 public class SyncService {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(SyncService.class);
     public static Logger logger = Logger.getLogger(SyncService.class.getName());
-
     private final NamedParameterJdbcTemplate jdbc;
     private final TransactionTemplate tx;
     private final Map<String, SyncTableHandler> handlers;
+    private final ObjectMapper objectMapper;
 
     private final ProcessedMutationRepository processedMutationRepository;
 
@@ -28,9 +29,11 @@ public class SyncService {
             NamedParameterJdbcTemplate jdbc,
             TransactionTemplate tx,
             ProcessedMutationRepository processedMutationRepository,
+            ObjectMapper objectMapper,
             List<SyncTableHandler> handlerList) {
         this.jdbc = jdbc;
         this.tx = tx;
+        this.objectMapper = objectMapper;
         this.processedMutationRepository = processedMutationRepository;
         this.handlers = handlerList.stream()
                 .collect(Collectors.toMap(SyncTableHandler::table, h -> h));
@@ -94,11 +97,47 @@ public class SyncService {
         return PushResult.conflict(entry.mutationId(), serverRow);
     }
 
+    public PullResponse pull(UUID userId, long since, int limit) {
+        int MAX_PAGE_SIZE = 50;
+        int pageSize = Math.min(Math.max(limit, 1), MAX_PAGE_SIZE);
+
+        // Ask for one extra row: if it comes back, we know another page exists
+        List<PullChange> rows = jdbc.query(
+                PULL_SQL,
+                Map.of("userId", userId, "since", since, "limit", pageSize + 1),
+                (rs, rowNum) -> new PullChange(
+                        rs.getString("tbl"),
+                        rs.getString("id"),
+                        rs.getLong("server_seq"),
+                        objectMapper.readTree(rs.getString("data"))));
+
+        boolean hasMore = rows.size() > pageSize;
+        List<PullChange> page = hasMore ? rows.subList(0, pageSize) : rows;
+        long nextCursor = page.isEmpty() ? since : page.get(page.size() - 1).serverSeq();
+
+        return new PullResponse(page, nextCursor, hasMore);
+    }
+
+    // One UNION ALL branch per synced table. All tables share change_seq, so ordering the
+    // merged result by server_seq gives one consistent cursor across tables.
+    private static final String PULL_SQL = """
+        SELECT tbl, id, server_seq, data FROM (
+            SELECT 'sessions' AS tbl, s.id::text AS id, s.server_seq, to_jsonb(s)::text AS data
+              FROM sessions s
+             WHERE s.user_id = :userId AND s.server_seq > :since
+            UNION ALL
+            SELECT 'session_types', t.id::text, t.server_seq, to_jsonb(t)::text
+              FROM session_types t
+             WHERE t.server_seq > :since
+        ) changes
+        ORDER BY server_seq
+        LIMIT :limit
+        """;
+
     // Process the mutation
     private int recordMutation(UUID mutationId, UUID userId) {
         // Query returns number of rows
         // 1 or 0
         return processedMutationRepository.insertProcessedMutation(mutationId, userId);
-
     }
 }
