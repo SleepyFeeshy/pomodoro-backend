@@ -1,10 +1,9 @@
 package com.pomodoro.backend.auth.controller;
 
-import com.pomodoro.backend.auth.model.TokenRequest;
+import com.pomodoro.backend.auth.model.GoogleLoginResponse;
+import com.pomodoro.backend.auth.service.GoogleAuthService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,9 +18,15 @@ public class AuthController {
 
     private Logger logger = Logger.getLogger(AuthController.class.getName());
     private final JwtDecoder jwtDecoder;
+    private final GoogleAuthService googleAuthService;
 
-    public AuthController(JwtDecoder jwtDecoder) {
+    public AuthController(
+            JwtDecoder jwtDecoder,
+            GoogleAuthService googleAuthService
+
+    ) {
         this.jwtDecoder = jwtDecoder;
+        this.googleAuthService = googleAuthService;
     }
 
     @PostMapping("/google")
@@ -32,17 +37,9 @@ public class AuthController {
         String idToken = requestBody.get("token");
         // Verify token
         try {
-//            Jwt jwt = jwtDecoder.decode(idToken);
-//            logger.info(jwt.toString());
-            Jwt jwt = jwtDecoder.decode(idToken);
-
-            String email = jwt.getClaimAsString("email");
-            String name = jwt.getClaimAsString("name");
-            String picture = jwt.getClaimAsString("picture");
-            String googleId = jwt.getSubject();
-
-            logger.info(email);
-            return ResponseEntity.status(200).body("Authentication successful.");
+            GoogleLoginResponse response = googleAuthService.googleVerifyToken(idToken);
+            googleAuthService.signInOrCreateUser(response);
+            return ResponseEntity.status(200).body(response);
         } catch (Exception e) {
             return ResponseEntity.status(401).body("Authentication failed: " + e.getMessage());
         }

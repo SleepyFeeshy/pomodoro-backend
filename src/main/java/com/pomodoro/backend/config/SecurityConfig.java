@@ -34,7 +34,7 @@ public class SecurityConfig {
     @Bean
     UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:1420"));
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:1420", "http://tauri.localhost"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*")); // ✅ Allow all headers (Content-Type, Authorization, etc.)
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
