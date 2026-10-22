@@ -35,6 +35,7 @@ public class AuthController {
         )
     {
         String idToken = requestBody.get("token");
+        logger.info(idToken);
         // Verify token
         try {
             GoogleLoginResponse response = googleAuthService.googleVerifyToken(idToken);
