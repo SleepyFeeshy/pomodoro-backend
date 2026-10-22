@@ -20,5 +20,17 @@ CREATE TABLE user_auth_credentials (
 
 CREATE UNIQUE INDEX users_email_lower_idx ON users (lower(email));
 
+CREATE TABLE roles (
+    id UUID PRIMARY KEY DEFAULT  gen_random_uuid(),
+    role_name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE user_roles (
+    id UUID PRIMARY KEY DEFAULT  gen_random_uuid(),
+    user_id UUID NOT NULL references users(id),
+    role_id UUID NOT NULL references roles(id),
+    CONSTRAINT user_role_unique UNIQUE (user_id, role_id)
+);
+
 INSERT INTO users (id, email, is_active) VALUES
     ('af24efdc-7387-4b9b-bd8c-bd183b393205', 'user@email.com', true);
