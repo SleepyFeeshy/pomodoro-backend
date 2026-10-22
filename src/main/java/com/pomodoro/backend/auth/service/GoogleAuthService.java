@@ -34,8 +34,9 @@ public class GoogleAuthService {
         return new GoogleLoginResponse(email, name, picture, googleId);
     }
 
-    public void signInOrCreateUser(GoogleLoginResponse googleLoginResponse) {
+    public UUID signInOrCreateUser(GoogleLoginResponse googleLoginResponse) {
         UUID user_id = userRepository.upsertUser(googleLoginResponse.getEmail());
         userAuthCredentialRepository.upsertUserAuthCredential(user_id, "google", googleLoginResponse.getGoogleId(), googleLoginResponse.getEmail(), OffsetDateTime.now());
+        return user_id;
     }
 }
