@@ -77,17 +77,7 @@ public class AuthControllerRoleAccessUnitTests {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void adminRoleHasAccessToSync() throws Exception {
         // ARRANGE - Valid OutboxRequest
-        ObjectNode data = objectMapper.createObjectNode();
-        data.put("id", "6f1c1c1e-5b0e-4a57-9a64-2f6f3a1d8b10");
-        data.put("duration_minutes", 25);
-        OutboxEntry outboxEntry = new OutboxEntry(
-                UUID.randomUUID().toString(),                 // mutationId
-                "sessions",                                   // table
-                "6f1c1c1e-5b0e-4a57-9a64-2f6f3a1d8b10",       // id
-                OutboxOp.values()[0],                         // op (see note)
-                data,                                         // data
-                null                                          // baseSeq: row never synced
-        );
+        OutboxEntry outboxEntry = validEntry();
         List<OutboxEntry> changes = new ArrayList<>();
         changes.add(outboxEntry);
         OutboxRequest outboxRequest = new OutboxRequest("deviceId", changes);
@@ -104,17 +94,7 @@ public class AuthControllerRoleAccessUnitTests {
     @WithMockUser(username = "guest")
     void noRoleHasNoAccessToSync() throws Exception {
         // ARRANGE - Valid OutboxRequest
-        ObjectNode data = objectMapper.createObjectNode();
-        data.put("id", "6f1c1c1e-5b0e-4a57-9a64-2f6f3a1d8b10");
-        data.put("duration_minutes", 25);
-        OutboxEntry outboxEntry = new OutboxEntry(
-                UUID.randomUUID().toString(),                 // mutationId
-                "sessions",                                   // table
-                "6f1c1c1e-5b0e-4a57-9a64-2f6f3a1d8b10",       // id
-                OutboxOp.values()[0],                         // op (see note)
-                data,                                         // data
-                null                                          // baseSeq: row never synced
-        );
+        OutboxEntry outboxEntry = validEntry();
         List<OutboxEntry> changes = new ArrayList<>();
         changes.add(outboxEntry);
         OutboxRequest outboxRequest = new OutboxRequest("deviceId", changes);
@@ -125,5 +105,20 @@ public class AuthControllerRoleAccessUnitTests {
                         .content(objectMapper.writeValueAsString(outboxRequest))
                 )
                 .andExpect(status().isForbidden());
+    }
+
+    private OutboxEntry validEntry() {
+        ObjectNode data = objectMapper.createObjectNode();
+        data.put("id", "6f1c1c1e-5b0e-4a57-9a64-2f6f3a1d8b10");
+        data.put("duration_minutes", 25);
+
+        return new OutboxEntry(
+                UUID.randomUUID().toString(),                 // mutationId
+                "sessions",                                   // table
+                "6f1c1c1e-5b0e-4a57-9a64-2f6f3a1d8b10",       // id
+                OutboxOp.values()[0],                         // op (see note)
+                data,                                         // data
+                null                                          // baseSeq: row never synced
+        );
     }
 }
