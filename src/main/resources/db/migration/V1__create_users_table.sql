@@ -32,5 +32,5 @@ CREATE TABLE user_roles (
     CONSTRAINT user_role_unique UNIQUE (user_id, role_id)
 );
 
-INSERT INTO users (id, email, is_active) VALUES
-    ('af24efdc-7387-4b9b-bd8c-bd183b393205', 'user@email.com', true);
+INSERT INTO roles (id, role_name) VALUES
+    ('1822475a-1b54-40cc-aeb3-03019a068afd', 'ADMIN');
