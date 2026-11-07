@@ -1,5 +1,5 @@
-
-FROM openjdk:17-jdk-alpine
-MAINTAINER baeldung.com
-COPY target/docker-message-server-1.0.0.jar message-server-1.0.0.jar
-ENTRYPOINT ["java","-jar","/message-server-1.0.0.jar"]
+FROM eclipse-temurin:25
+WORKDIR /app
+COPY target/pomoodoro-backend-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 8080
+CMD ["java", "-jar", "app.jar"]
