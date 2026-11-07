@@ -1,0 +1,25 @@
+services:
+  backend:
+    build: .
+#    image: sha256:d943ff78cb570b8a99584a1c8f172259ac92f8948adf25b48839d6d2dc8df43d
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/pomodoro-backend
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=11789
+
+  db:
+    image: postgres:18
+    container_name: postgres-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: pomodoro-backend
+      POSTGRES_PASSWORD: 11789
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:
